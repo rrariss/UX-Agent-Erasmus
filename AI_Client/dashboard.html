@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UX Executive Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px; color: #2c3e50;}
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #e0e0e0; padding-bottom: 20px;}
+        h1 { margin: 0; color: #2c3e50; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .card h2 { margin-top: 0; font-size: 18px; color: #7f8c8d; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px;}
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #34495e;}
+        
+        .sentiment-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;}
+        .sentiment-Negative { background-color: #fadbd8; color: #c0392b; }
+        .sentiment-Positive { background-color: #d5f5e3; color: #27ae60; }
+        .sentiment-Neutral { background-color: #e5e7e9; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>University Portal: UX Feedback Dashboard</h1>
+            <button onclick="fetchData()" style="padding: 10px 20px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 6px;">Refresh Data</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Critical Problem Areas (Negative Feedback Only)</h2>
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+            <div class="card">
+                <h2>Priority Action Items (AI Synthesized)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Sentiment</th>
+                            <th>AI Core Insight</th>
+                        </tr>
+                    </thead>
+                    <tbody id="insights-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000/api/dashboard-data";
+        let chartInstance = null;
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                renderChart(data.chart_data);
+                renderTable(data.insights);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        function renderChart(chartData) {
+            // Extract labels and data points
+            const labels = chartData.map(item => item.category);
+            
+            // UPDATE THIS LINE to use the new SQL variable:
+            const values = chartData.map(item => item.problem_count); 
+
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            // Destroy existing chart before redrawing to prevent overlap
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function renderTable(insightsData) {
+            const tbody = document.getElementById('insights-table-body');
+            tbody.innerHTML = ''; // Clear old rows
+
+            insightsData.forEach(row => {
+                // Try to clean up the sentiment string to map it to our CSS classes
+                let cleanSentiment = row.sentiment.trim();
+                if (cleanSentiment.toLowerCase().includes('negative')) cleanSentiment = 'Negative';
+                else if (cleanSentiment.toLowerCase().includes('positive')) cleanSentiment = 'Positive';
+                else cleanSentiment = 'Neutral';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: 500;">${row.category}</td>
+                    <td><span class="sentiment-badge sentiment-${cleanSentiment}">${row.sentiment}</span></td>
+                    <td style="font-size: 14px; line-height: 1.4;">${row.insight}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Load data immediately when the page opens
+        window.onload = fetchData;
+    </script>
+</body>
+</html>

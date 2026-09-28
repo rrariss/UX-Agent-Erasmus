@@ -1,0 +1,5 @@
+The main course schedules are located under Academics > Student Resources > Timetables. It requires 4 clicks from the homepage.
+The Erasmus+ mobility information and schedules are found under the International Relations tab on the top right navigation bar.
+To change the website language to English, users must click the small flag icon in the absolute top-right corner of the header.
+The Student Portal login for checking grades is a separate subdomain (portal.uni-ruse.bg) and cannot be accessed directly from the main homepage body, only the header menu.
+If a user gets a 404 error on the homepage, it is usually because they clicked the legacy "News Archive" banner which has not been updated.

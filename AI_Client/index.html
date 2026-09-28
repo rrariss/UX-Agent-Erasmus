@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Mockup & UX Agent</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 50px; }
+        .mock-content { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Floating Chat Widget Styles */
+        #ux-widget-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end;}
+        #ux-chat-window { width: 360px; height: 550px; background: white; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea;}
+        
+        /* Header with Back Button */
+        #ux-header { background: #2c3e50; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 15px;}
+        #ux-back-btn { background: none; border: none; color: white; cursor: pointer; font-size: 18px; padding: 0 10px 0 0; display: none; transition: opacity 0.2s;}
+        #ux-back-btn:hover { opacity: 0.7; }
+        
+        #ux-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #f9f9f9;}
+        
+        /* Message Bubbles */
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 85%; font-size: 14px; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);}
+        .bot-msg { background: #ffffff; border: 1px solid #e0e0e0; color: #333; align-self: flex-start; border-bottom-left-radius: 4px;}
+        .user-msg { background: #3498db; color: white; align-self: flex-end; border-bottom-right-radius: 4px;}
+        .system-msg { background: transparent; color: #7f8c8d; align-self: center; font-size: 13px; text-align: center; width: 100%; font-weight: 500;}
+        
+        #ux-categories { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .category-btn { padding: 12px; background: #ffffff; border: 1px solid #d5dbdb; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s ease; font-size: 14px; color: #2c3e50; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .category-btn:hover { background: #f4f6f7; border-color: #bdc3c7; transform: translateY(-1px); }
+        .menu-return-btn { background: #2ecc71; color: white; text-align: center; font-weight: bold; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: background 0.2s;}
+        .menu-return-btn:hover { background: #27ae60; }
+        
+        /* Fix: Input Area Alignment */
+        #ux-controls { display: flex; flex-direction: column; padding: 15px; background: white; border-top: 1px solid #eee;}
+        #ux-input-area { display: none; flex-direction: row; gap: 10px; align-items: center; /* Center perfectly */ }
+        
+        /* Fix: Exact heights and box-sizing for perfect flush alignment */
+        #ux-input { flex: 1; height: 45px; padding: 12px; border: 1px solid #dcdcdc; border-radius: 12px; outline: none; font-family: inherit; font-size: 14px; resize: none; overflow-y: auto; line-height: 1.4; box-sizing: border-box; transition: border-color 0.2s;}
+        #ux-input:focus { border-color: #3498db; }
+        #ux-input:disabled { background-color: #f4f6f7; cursor: not-allowed; }
+        
+        #ux-send { background: #3498db; color: white; border: none; height: 45px; padding: 0 18px; border-radius: 12px; cursor: pointer; font-weight: 600; box-sizing: border-box; display: flex; align-items: center; justify-content: center; transition: background 0.2s;}
+        #ux-send:hover:not(:disabled) { background: #2980b9; }
+        #ux-send:disabled { background: #bdc3c7; cursor: not-allowed; }
+        
+        /* Main Toggle Button */
+        #ux-toggle-btn { background: #e74c3c; color: white; border: none; width: 65px; height: 65px; border-radius: 50%; font-size: 28px; cursor: pointer; box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+        #ux-toggle-btn:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <div class="mock-content">
+        <h1>University Portal Mockup</h1>
+        <p>Imagine this is the student dashboard where they check their schedules and grades.</p>
+        <p>Look at the bottom right corner of your screen to see the AI client.</p>
+    </div>
+
+    <div id="ux-widget-container">
+        <div id="ux-chat-window">
+            <div id="ux-header">
+                <button id="ux-back-btn" onclick="resetToMenu()" title="Back to Menu">←</button>
+                <span style="flex-grow: 1; text-align: center; padding-right: 28px;">UX Feedback Agent</span>
+            </div>
+            
+            <div id="ux-messages">
+                <div id="ux-categories-container">
+                    <div class="system-msg">Which area would you like to review?</div>
+                    <div id="ux-categories">
+                        <button class="category-btn" onclick="startSession('Learnability (Navigation & First Clicks)')">📍 Navigation & Finding Things</button>
+                        <button class="category-btn" onclick="startSession('Efficiency (Speed & Task Completion)')">⚡ Speed & Completing Tasks</button>
+                        <button class="category-btn" onclick="startSession('Error Prevention (Broken Links & Confusion)')">🚨 Errors & Confusing Layouts</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ux-controls">
+                <div id="ux-input-area" style="display: none;">
+                    <textarea id="ux-input" placeholder="Type your feedback..." onkeydown="handleEnter(event)"></textarea>
+                    <button type="button" id="ux-send" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+        <button id="ux-toggle-btn" onclick="toggleChat()">💬</button>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let currentSessionId = null;
+
+        function toggleChat() {
+            const chat = document.getElementById('ux-chat-window');
+            chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function appendMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${sender}-msg`;
+            msgDiv.innerText = text;
+            const messagesContainer = document.getElementById('ux-messages');
+            messagesContainer.appendChild(msgDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return msgDiv; 
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function resetToMenu() {
+            currentSessionId = null;
+            
+            // Clear chat and reset UI
+            const messagesContainer = document.getElementById('ux-messages');
+            const categoriesHTML = document.getElementById('ux-categories-container').outerHTML;
+            messagesContainer.innerHTML = categoriesHTML;
+            
+            document.getElementById('ux-categories-container').style.display = 'block';
+            document.getElementById('ux-input-area').style.display = 'none';
+            document.getElementById('ux-back-btn').style.display = 'none';
+            
+            // Re-enable inputs if they were disabled from a finished session
+            const inputField = document.getElementById('ux-input');
+            const sendBtn = document.getElementById('ux-send');
+            inputField.disabled = false;
+            inputField.placeholder = "Type your feedback...";
+            sendBtn.disabled = false;
+        }
+
+        async function startSession(category) {
+            document.getElementById('ux-categories-container').style.display = 'none';
+            document.getElementById('ux-input-area').style.display = 'flex';
+            document.getElementById('ux-back-btn').style.display = 'block'; 
+            
+            const typingIndicator = appendMessage("Connecting...", 'system');
+            
+            try {
+                const response = await fetch(`${API_URL}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: category })
+                });
+                const data = await response.json();
+                
+                typingIndicator.remove();
+                currentSessionId = data.session_id;
+                appendMessage(data.bot_reply, 'bot');
+            } catch (error) {
+                typingIndicator.innerText = "Error connecting to AI Server. Is the Python script running?";
+            }
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById('ux-input');
+            const sendBtn = document.getElementById('ux-send');
+            const userText = inputField.value.trim();
+            
+            if (!userText || !currentSessionId) return;
+
+            appendMessage(userText, 'user');
+            inputField.value = ''; 
+            
+            const typingIndicator = appendMessage("Thinking...", 'bot');
+
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId, user_message: userText })
+                });
+                const data = await response.json();
+                
+                typingIndicator.remove();
+                appendMessage(data.bot_reply, 'bot');
+
+                // Graceful Closing State: Keep UI stable, disable inputs
+// Graceful Closing State: Hide input, spawn return button
+                if (data.is_complete) {
+                    currentSessionId = null;
+                    
+                    // 1. Completely hide the text box and send button
+                    document.getElementById('ux-input-area').style.display = 'none';
+                    
+                    // 2. Create the "Return to Menu" button
+                    const returnBtn = document.createElement('button');
+                    returnBtn.type = 'button'; // Prevent default submit behavior
+                    returnBtn.className = 'category-btn menu-return-btn';
+                    returnBtn.innerText = "✓ Return to Home";
+                    returnBtn.onclick = resetToMenu;
+                    
+                    // 3. Wrap it in a div for center alignment
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.style.display = 'flex';
+                    btnWrapper.style.justifyContent = 'center';
+                    btnWrapper.style.marginTop = '15px';
+                    btnWrapper.appendChild(returnBtn);
+                    
+                    // 4. Inject into chat and scroll to bottom
+                    document.getElementById('ux-messages').appendChild(btnWrapper);
+                    document.getElementById('ux-messages').scrollTop = document.getElementById('ux-messages').scrollHeight;
+                }
+            } catch (error) {
+                typingIndicator.innerText = "Connection error.";
+            }
+        }
+    </script>
+</body>
+</html>
